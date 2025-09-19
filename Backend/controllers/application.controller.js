@@ -1,5 +1,6 @@
 import { Application } from "../models/application.model.js";
 import { Job} from "../models/job.model.js";
+
 export const applyJob = async (req, res) => {
   try{
     const userId = req.id;
@@ -80,9 +81,10 @@ export const getApplicants = async (req, res) => { //admin dekhnge kitne user n 
     const jobId = req.params.id; //job id eisliye quki admin ko job ki applicants dekhni hai
     const job = await Job.findById(jobId).populate({
       path: 'applications',
-      options :{sort: { createdAt: -1 }},
+      options: { sort: { createdAt: -1 } },
       populate: {
         path: 'applicant',
+        select: 'fullname email phoneNumber profile' // Explicitly select profile field
       }
     });
     if(!job){
@@ -91,8 +93,12 @@ export const getApplicants = async (req, res) => { //admin dekhnge kitne user n 
         success: false,
       });
     };
+    
+    // Debug log to check if resume data is present
+    console.log("Job applications with applicant data:", JSON.stringify(job.applications, null, 2));
+    
     return res.status(200).json({
-     job,
+      job,
       success: true,
     });
   }

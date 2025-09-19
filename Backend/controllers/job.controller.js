@@ -1,4 +1,5 @@
 import { Job } from "../models/job.model.js";
+
 export const postJob = async (req, res) => {
   try {
     const {
@@ -48,8 +49,13 @@ export const postJob = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
   }
 };
+
 export const getAllJobs = async (req, res) => {
   try {
     const keyword = req.query.keyword || "";
@@ -60,9 +66,9 @@ export const getAllJobs = async (req, res) => {
       ],
     };
     const jobs = await Job.find(query).populate({
-      path:"company"
+      path: "company"
     }).sort({
-createdAt:-1
+      createdAt: -1
     });
     if (!jobs) {
       return res.status(404).json({
@@ -76,14 +82,29 @@ createdAt:-1
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
   }
 };
+
 export const getJobById = async (req, res) => {
   try {
     const jobId = req.params.id;
-    const job = await Job.findById(jobId).populate({
-     path:"applications"
-    });
+    const job = await Job.findById(jobId)
+      .populate({
+        path: "applications",
+        populate: {
+          path: "applicant",
+          select: "fullname email phoneNumber profile"
+        }
+      })
+      .populate({
+        path: "company",
+        select: "name description website location"
+      });
+      
     if (!job) {
       return res.status(404).json({
         message: "Job not found",
@@ -96,16 +117,29 @@ export const getJobById = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
   }
-}
+};
 
 export const getAdminJobs = async (req, res) => {
   try {
     const adminId = req.id;
-    const jobs = await Job.find({ created_by: adminId }).populate({
-      path:'company',
-      createdAt:-1
-    });
+    const jobs = await Job.find({ created_by: adminId })
+      .populate({
+        path: 'company'
+      })
+      .populate({
+        path: 'applications',
+        populate: {
+          path: 'applicant',
+          select: 'fullname email phoneNumber profile'
+        }
+      })
+      .sort({ createdAt: -1 });
+      
     if (!jobs) {
       return res.status(404).json({
         message: "No jobs found for this user",
@@ -118,5 +152,9 @@ export const getAdminJobs = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
+    return res.status(500).json({
+      message: "Server error",
+      success: false,
+    });
   }
-}
+};

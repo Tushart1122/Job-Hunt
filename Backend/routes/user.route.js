@@ -1,20 +1,23 @@
 import express from "express";
-import { login, register, updateProfile, logout } from "../controllers/user.controllers.js";
+import { login, register, updateProfile, logout, viewFile } from "../controllers/user.controllers.js";
 import isAuthenticated from "../middleware/isAuthenticated.js";
-import { singleUpload } from "../middleware/multer.js";
+import { upload } from "../utils/girdfsStorage.js";
 
 const router = express.Router();
 
-// Register with file upload middleware
-router.route("/register").post(singleUpload, register);
+// Register with optional file upload
+router.post("/register", upload.single('file'), register);
 
-// Login route
-router.route("/login").post(login);
+// Login
+router.post("/login", login);
 
-// Logout route
-router.route("/logout").get(logout);
+// Logout
+router.get("/logout", logout);
 
-// Profile update route with auth and file upload middlewares
-router.route("/profile/update").post(isAuthenticated, singleUpload, updateProfile);
+// View file - using :id to match controller expectation
+router.get("/files/:id", viewFile);
+
+// Profile update with file upload
+router.post("/profile/update", isAuthenticated, upload.single('file'), updateProfile);
 
 export default router;

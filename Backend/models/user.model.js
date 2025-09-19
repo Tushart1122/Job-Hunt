@@ -27,14 +27,18 @@ const userSchema = new mongoose.Schema(
     profile: {
       bio: { type: String },
       skills: [{ type: String }],
-      resume: { type: String },
-      resumeOriginalName: { type: String },
+      // Resume fields for GridFS
+      resumeId: { type: String }, // GridFS file ID
+      resumeFilename: { type: String }, // Generated filename
+      resumeOriginalName: { type: String }, // Original uploaded filename
+      // Profile photo fields for GridFS
+      profilePhotoId: { type: String }, // GridFS file ID
+      profilePhotoFilename: { type: String }, // Generated filename
+      // Company reference
       company: { type: mongoose.Schema.Types.ObjectId, ref: "Company" },
-      profilePhoto: {
-        type: String,
-        default:
-          "https://res.cloudinary.com/dz1qj3x4h/image/upload/v1709301234/default-profile-photo.png",
-      },
+      // Legacy fields (keep for backward compatibility)
+      resume: { type: String },
+      profilePhoto: { type: String },
     },
   },
   { timestamps: true }

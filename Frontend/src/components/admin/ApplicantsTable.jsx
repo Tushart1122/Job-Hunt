@@ -36,10 +36,23 @@ const ApplicantsTable = () => {
     }
   };
 
-  const handleResumeClick = (url) => {
-    if (!url) return;
-    // Open resume in a new tab (PDFs will render inline, DOC/DOCX may download)
-    window.open(url, "_blank", "noopener,noreferrer");
+  const handleResumeClick = (resumeId) => {
+    if (!resumeId) return;
+    // Construct the resume URL using your backend API
+    const resumeUrl = `http://localhost:8000/api/v1/user/files/${resumeId}`;
+    window.open(resumeUrl, "_blank", "noopener,noreferrer");
+  };
+
+  // Debug function - you can remove this after testing
+  const debugApplicant = (item, index) => {
+    console.log(`Applicant ${index}:`, {
+      fullname: item.applicant?.fullname,
+      hasProfile: !!item.applicant?.profile,
+      resumeId: item.applicant?.profile?.resumeId,
+      resumeOriginalName: item.applicant?.profile?.resumeOriginalName,
+      resumeFilename: item.applicant?.profile?.resumeFilename,
+      fullProfileData: item.applicant?.profile
+    });
   };
 
   return (
@@ -57,46 +70,53 @@ const ApplicantsTable = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {applicants?.applications?.map((item, index) => (
-            <TableRow key={item.id || index}>
-              <TableCell>{item.applicant?.fullname || "Full Name"}</TableCell>
-              <TableCell>{item.applicant?.email || "Email"}</TableCell>
-              <TableCell>{item.applicant?.phoneNumber || "Contact"}</TableCell>
-              <TableCell className="text-blue-600 cursor-pointer">
-                {item.applicant?.profile?.resume ? (
-                  <span
-                    onClick={() => handleResumeClick(item.applicant.profile.resume)}
-                    className="hover:underline"
-                  >
-                    {item.applicant.profile.resumeOriginalName || "View Resume"}
-                  </span>
-                ) : (
-                  "No Resume"
-                )}
-              </TableCell>
-              <TableCell>
-                {new Date(item.createdAt).toLocaleDateString() || "Date"}
-              </TableCell>
-              <TableCell className="float-right cursor-pointer">
-                <Popover>
-                  <PopoverTrigger>
-                    <MoreHorizontal className="cursor-pointer" />
-                  </PopoverTrigger>
-                  <PopoverContent className="w-32">
-                    {shortlistingStatus.map((status, statusIndex) => (
-                      <div
-                        onClick={() => statusHandler(status, item?._id)}
-                        key={statusIndex}
-                        className="flex w-fit items-center my-2 cursor-pointer"
-                      >
-                        <span>{status}</span>
-                      </div>
-                    ))}
-                  </PopoverContent>
-                </Popover>
-              </TableCell>
-            </TableRow>
-          ))}
+          {applicants?.applications?.map((item, index) => {
+            // Debug log - remove after testing
+            debugApplicant(item, index);
+            
+            return (
+              <TableRow key={item._id || index}>
+                <TableCell>{item.applicant?.fullname || "Full Name"}</TableCell>
+                <TableCell>{item.applicant?.email || "Email"}</TableCell>
+                <TableCell>{item.applicant?.phoneNumber || "Contact"}</TableCell>
+                <TableCell className="text-blue-600 cursor-pointer">
+                  {item.applicant?.profile?.resumeId ? (
+                    <span
+                      onClick={() => handleResumeClick(item.applicant.profile.resumeId)}
+                      className="hover:underline"
+                    >
+                      📄 {item.applicant.profile.resumeOriginalName || 
+                           item.applicant.profile.resumeFilename || 
+                           "View Resume"}
+                    </span>
+                  ) : (
+                    <span className="text-gray-500">No Resume</span>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {new Date(item.createdAt).toLocaleDateString() || "Date"}
+                </TableCell>
+                <TableCell className="float-right cursor-pointer">
+                  <Popover>
+                    <PopoverTrigger>
+                      <MoreHorizontal className="cursor-pointer" />
+                    </PopoverTrigger>
+                    <PopoverContent className="w-32">
+                      {shortlistingStatus.map((status, statusIndex) => (
+                        <div
+                          onClick={() => statusHandler(status, item?._id)}
+                          key={statusIndex}
+                          className="flex w-fit items-center my-2 cursor-pointer"
+                        >
+                          <span>{status}</span>
+                        </div>
+                      ))}
+                    </PopoverContent>
+                  </Popover>
+                </TableCell>
+              </TableRow>
+            );
+          })}
         </TableBody>
       </Table>
     </div>
